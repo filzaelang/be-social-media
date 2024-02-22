@@ -33,4 +33,16 @@ export default new class AuthController {
                 .json({ message: "Internal server error", error: error.message });
         }
     }
+
+    async check(req: Request, res: Response) {
+        try {
+            const loginSession = res.locals.loginSession;
+            const response = await AuthServices.check(loginSession);
+
+            return res.status(201).json(response);
+        } catch (error) {
+            console.error("Error checking", error);
+            return res.status(500).json({ message: "Internal server error", error: error.message });
+        }
+    }
 }

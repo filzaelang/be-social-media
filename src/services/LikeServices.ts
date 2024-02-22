@@ -1,6 +1,7 @@
 import { AppDataSource } from "../data-source";
 import { Repository } from "typeorm";
 import { Like } from "../entity/Like";
+import { throws } from "assert";
 
 export default new class LikeServices {
     private readonly LikeRepository: Repository<Like> = AppDataSource.getRepository(Like);
@@ -8,7 +9,7 @@ export default new class LikeServices {
     async create(data: Like): Promise<object | string> {
         try {
 
-            const checkLike = await this.LikeRepository.count({
+            const checkLike = await this.LikeRepository.exists({
                 where: {
                     user_id: {
                         id: data.user_id.id
@@ -16,10 +17,11 @@ export default new class LikeServices {
                     thread_id: {
                         id: data.thread_id.id
                     }
-                }
+                },
+                relations: ["user_id", "thread_id"]
             })
 
-            if (checkLike > 0) {
+            if (checkLike) {
                 throw new Error("You already liked this thread !");
             }
 
@@ -38,9 +40,27 @@ export default new class LikeServices {
         }
     }
 
-    async delete(id: number): Promise<object | string> {
+    async delete(id: number, loginSession: any): Promise<object | string> {
         try {
-            const response = this.LikeRepository.delete(id);
+            const checkLike = await this.LikeRepository.findOne({
+                where: {
+                    thread_id: {
+                        id: id
+                    },
+                    user_id: {
+                        id: loginSession.obj.id
+                    }
+                }
+            })
+
+            if (!checkLike) {
+                throw new Error("YOu didn't like this thread")
+            }
+
+            const response = this.LikeRepository.delete({
+                id: checkLike.id
+            });
+
             return {
                 message: "You disliked this thread!",
                 data: response

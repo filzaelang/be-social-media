@@ -9,10 +9,10 @@ export default new class LikeController {
 
             const obj = {
                 ...data,
-                user_id: loginSession.obj.id,
-                thread_id: data.thread_id,
-                created_by: loginSession.obj.id,
-                updated_by: loginSession.obj.id
+                user_id: { id: loginSession.obj.id },
+                thread_id: { id: data.thread_id },
+                created_by: { id: loginSession.obj.id },
+                updated_by: { id: loginSession.obj.id }
             };
 
             const response = await LikeServices.create(obj);
@@ -23,10 +23,13 @@ export default new class LikeController {
         }
     }
 
+
     async delete(req: Request, res: Response) {
         try {
-            const id = parseInt(req.params.id, 10);
-            const response = await LikeServices.delete(id);
+            const id = parseInt(req.params.thread_id, 10);
+            const loginSession = res.locals.loginSession;
+            const response = await LikeServices.delete(id, loginSession);
+
 
             if (isNaN(id)) {
                 return res.status(400).json({

@@ -13,7 +13,7 @@ export class User {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @Column({ nullable: true })
     username: string;
 
     @Column()
@@ -27,6 +27,9 @@ export class User {
 
     @Column({ nullable: true })
     photo_profile: string;
+
+    @Column({ nullable: true })
+    description: string;
 
     @OneToMany(() => Thread, (thread) => thread.created_by, {
         onUpdate: "CASCADE",

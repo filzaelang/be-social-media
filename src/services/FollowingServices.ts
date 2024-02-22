@@ -8,8 +8,20 @@ export default new class FollowingServices {
 
     private readonly UserRepository: Repository<User> = AppDataSource.getRepository(User);
 
-    async findFollowing(ourId: number): Promise<object | string> {
+    async findMyFollowing(ourId: number): Promise<object | string> {
         try {
+            const checkFollowing = await this.FollowingRepository.count({
+                where: {
+                    follower_id: {
+                        id: ourId
+                    }
+                }
+            })
+
+            if (checkFollowing <= 0) {
+                return { message: "You have 0 Following" }
+            }
+
             const response = await this.FollowingRepository.find({
                 where: {
                     follower_id: {
@@ -27,8 +39,20 @@ export default new class FollowingServices {
         }
     }
 
-    async findFollower(ourId: number): Promise<object | string> {
+    async findMyFollower(ourId: number): Promise<object | string> {
         try {
+            const checkFollower = await this.FollowingRepository.count({
+                where: {
+                    following_id: {
+                        id: ourId
+                    }
+                }
+            })
+
+            if (checkFollower <= 0) {
+                return { message: "You have 0 Follower" }
+            }
+
             const response = await this.FollowingRepository.find({
                 where: {
                     following_id: {
@@ -46,15 +70,15 @@ export default new class FollowingServices {
         }
     }
 
-    async create(data: Following): Promise<object | string> {
+    async create(data: Following, loginSession: any, reqBody: any): Promise<object | string> {
         try {
             const checkFollow = await this.FollowingRepository.count({
                 where: {
                     following_id: {
-                        id: data.following_id.id
+                        id: reqBody.following_id
                     },
                     follower_id: {
-                        id: data.follower_id.id
+                        id: loginSession.obj.id
                     }
                 }
             });
@@ -63,13 +87,16 @@ export default new class FollowingServices {
                 throw new Error("You already follow this person !");
             }
 
-            if (data.following_id === data.follower_id) {
+            const a = reqBody.following_id
+            const b = loginSession.obj.id
+
+            if (a == b) {
                 throw new Error("You can't follow yourself !");
             }
 
             const checkUser = await this.UserRepository.count({
                 where: {
-                    id: data.following_id.id
+                    id: reqBody.following_id
                 }
             });
 
@@ -94,7 +121,7 @@ export default new class FollowingServices {
 
     async delete(id: number): Promise<object | string> {
         try {
-            const response = await this.FollowingRepository.delete(id);
+            const response = await this.FollowingRepository.delete(id)
             return {
                 message: "You unfollowed this person !",
                 data: response

@@ -1,5 +1,5 @@
 import { AppDataSource } from "../data-source";
-import { Repository } from "typeorm";
+import { Repository, FindManyOptions } from "typeorm";
 import { User } from "../entity/User";
 import * as bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
@@ -13,7 +13,19 @@ export default new class AuthServices {
             const usernameCheck = await this.AuthRepository.count({
                 where: { username: data.username },
             });
-            if (usernameCheck > 0) return { message: `Username already used` };
+
+            if (usernameCheck > 0) {
+                throw new Error(`Username already used`);
+            }
+
+            const emailCheck = await this.AuthRepository.count({
+                where: { email: data.email },
+            });
+
+            if (emailCheck > 0) {
+                throw new Error(`Email already registered`);
+            }
+
 
             const hashPassword = await bcrypt.hash(data.password, 10);
 
@@ -37,13 +49,20 @@ export default new class AuthServices {
 
     async login(data: User): Promise<object | string> {
         try {
-            const idCheck = await this.AuthRepository.findOneBy({
-                username: data.username
-            });
-            if (!idCheck) return { message: "Username did not exist" };
+            const idCheck = await this.AuthRepository.findOne({
+                where: [
+                    { username: data.username },
+                    { email: data.username },
+                ],
+            } as FindManyOptions<User>);
+            if (!idCheck) {
+                throw new Error("Username or email does not exist");
+            }
 
-            const comparePassword = bcrypt.compare(data.password, idCheck.password);
-            if (!comparePassword) return "password is wrong!";
+            const comparePassword = await bcrypt.compare(data.password, idCheck.password);
+            if (!comparePassword) {
+                throw new Error("Password & email/username doesn't match !")
+            }
 
             const obj = this.AuthRepository.create({
                 id: idCheck.id,
@@ -58,9 +77,37 @@ export default new class AuthServices {
             });
 
             return {
-                message: `Login is success`,
-                token
+                message: `Login success`,
+                token,
+                obj
             };
+        } catch (error) {
+            throw new Error(error.message)
+        }
+    }
+
+    async check(loginSession: any): Promise<any> {
+        try {
+            const check = await this.AuthRepository.findOne({
+                where: {
+                    id: loginSession.obj.id
+                },
+                relations: ["follower", "following"]
+            })
+
+            return {
+                message: "Token is valid!",
+                check: {
+                    id: check.id,
+                    username: check.username,
+                    full_name: check.full_name,
+                    email: check.email,
+                    photo_profile: check.photo_profile,
+                    description: check.description,
+                    followers_count: check.follower.length,
+                    following_count: check.following.length
+                },
+            }
         } catch (error) {
             throw new Error(error.message)
         }

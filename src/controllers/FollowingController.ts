@@ -2,19 +2,28 @@ import { Request, Response } from "express";
 import FollowingServices from "../services/FollowingServices";
 
 export default new class FollowingController {
-    // async find(req: Request, res: Response) {
-    //     try {
-    //         const loginSession = res.locals.loginSession;
-    //         const type = (req.query.type ?? "") as string;
-    //         const limit = (req.query.limit ?? 0) as number;
 
-    //         const response = await FollowingServices.find(loginSession, type, limit);
-    //         return res.status(200).json(response);
-    //     } catch (error) {
-    //         console.error("Error getting all follow", error);
-    //         return res.status(500).json({ message: "Internal server error", error: error.message })
-    //     }
-    // }
+    async findMyFollowing(req: Request, res: Response) {
+        try {
+            const loginSession = res.locals.loginSession;
+            const response = await FollowingServices.findMyFollowing(loginSession.obj.id);
+            return res.status(200).json(response)
+        } catch (error) {
+            console.error("Error getting all following", error);
+            return res.status(500).json({ message: "Internal server error", error: error.message })
+        }
+    }
+
+    async findMyFollower(req: Request, res: Response) {
+        try {
+            const loginSession = res.locals.loginSession;
+            const response = await FollowingServices.findMyFollower(loginSession.obj.id);
+            return res.status(200).json(response);
+        } catch (error) {
+            console.error("Error getting all follower", error);
+            return res.status(500).json({ message: "Internal server error", error: error.message });
+        }
+    }
 
     async create(req: Request, res: Response) {
         try {
@@ -29,8 +38,8 @@ export default new class FollowingController {
                 updated_by: loginSession.obj.id
             };
 
-            const response = await FollowingServices.create(obj);
-            return res.status(201).json(response);
+            const response = await FollowingServices.create(obj, loginSession, data);
+            return res.status(200).json(response);
         } catch (error) {
             console.error("Error following", error);
             return res.status(500).json({ message: "Internal server error", error: error.message });

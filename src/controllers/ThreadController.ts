@@ -1,11 +1,13 @@
 import { Request, Response } from "express";
 import ThreadServices from "../services/ThreadServices";
 import { createThread, updateThread } from "../utils/validator/ThreadValidator";
+import cloudinary from "../libs/cloudinary";
 
 export default new class ThreadController {
     async getAll(req: Request, res: Response) {
         try {
-            const response = await ThreadServices.getAll();
+            const loginSession = res.locals.loginSession;
+            const response = await ThreadServices.getAll(loginSession);
             return res.status(200).json(response);
         } catch (error) {
             console.error("Error getting all thread", error);
@@ -42,14 +44,19 @@ export default new class ThreadController {
 
             const data = {
                 content: req.body.content,
-                image: req.body.image
+                image: res.locals.filename,
+                // image: req.body.image
             }
 
             const { error, value } = createThread.validate(data);
             if (error) return res.status(400).json(error);
 
+            // cloudinary.upload();
+            // const cloudinaryRes = await cloudinary.destination(value.image)
+
             const obj = {
                 ...value,
+                // image: cloudinaryRes.secure_url,
                 created_by: loginSession.obj.id,
                 updated_by: loginSession.obj.id
             };
@@ -71,7 +78,10 @@ export default new class ThreadController {
                     error: "Invalid input for type number",
                 });
             }
-            const data = req.body;
+            const data = {
+                content: req.body.content,
+                image: res.locals.filename
+            };
 
             const { error, value } = updateThread.validate(data);
             if (error) return res.status(400).json(error);
