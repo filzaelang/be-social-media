@@ -18,7 +18,9 @@ export default new class ThreadController {
     async getOne(req: Request, res: Response) {
         try {
             const id = parseInt(req.params.id, 10);
-            const data = await ThreadServices.getOne(id);
+            const loginSession = res.locals.loginSession;
+            const data = await ThreadServices.getOne(id, loginSession);
+            console.log(loginSession)
 
             if (typeof data === "string") {
                 return res.status(404).json({ message: data })
@@ -40,23 +42,23 @@ export default new class ThreadController {
         try {
 
             const loginSession = res.locals.loginSession
-            console.log(loginSession.obj.full_name)
 
             const data = {
-                content: req.body.content,
-                image: res.locals.filename,
-                // image: req.body.image
+                content: req.body.content ? req.body.content : null,
+                image: req.file ? res.locals.filename : null,
             }
 
             const { error, value } = createThread.validate(data);
             if (error) return res.status(400).json(error);
 
-            // cloudinary.upload();
-            // const cloudinaryRes = await cloudinary.destination(value.image)
+            if (req.file) {
+                cloudinary.upload();
+                const cloudinaryRes = await cloudinary.destination(value.image)
+                value.image = cloudinaryRes.secure_url
+            }
 
             const obj = {
                 ...value,
-                // image: cloudinaryRes.secure_url,
                 created_by: loginSession.obj.id,
                 updated_by: loginSession.obj.id
             };
@@ -78,6 +80,7 @@ export default new class ThreadController {
                     error: "Invalid input for type number",
                 });
             }
+
             const data = {
                 content: req.body.content,
                 image: res.locals.filename

@@ -3,7 +3,7 @@ import { Repository } from "typeorm";
 import { Thread } from "../entity/Thread";
 import { Like } from "../entity/Like";
 import cloudinary from "../libs/cloudinary";
-import LikeServices from "./LikeServices";
+
 
 export default new class ThreadServices {
     private readonly ThreadRepository: Repository<Thread> = AppDataSource.getRepository(Thread);
@@ -11,23 +11,6 @@ export default new class ThreadServices {
 
     async create(data: Thread): Promise<object | string> {
         try {
-            if (data.image) {
-                cloudinary.upload();
-                const cloudinaryres = await cloudinary.destination(data.image);
-
-                const response = this.ThreadRepository.save({
-                    ...data,
-                    image: cloudinaryres.secure_url,
-                    created_at: new Date(),
-                    updated_at: new Date()
-                });
-
-                return {
-                    message: "success creating a new thread",
-                    data: response
-                };
-            }
-
             const response = this.ThreadRepository.save({
                 ...data,
                 created_at: new Date(),
@@ -45,6 +28,9 @@ export default new class ThreadServices {
 
     async update(id: number, data: Thread): Promise<object | string> {
         try {
+            const thread = this.ThreadRepository.findOne({
+
+            })
             if (data.image) {
                 cloudinary.upload();
                 const cloudinaryRes = await cloudinary.destination(data.image);
@@ -56,7 +42,7 @@ export default new class ThreadServices {
 
                 const response = await this.ThreadRepository.update(id, obj);
                 return {
-                    message: "success updating a Paslon",
+                    message: "success updating a thread",
                     data: response,
                 };
             }
@@ -154,7 +140,7 @@ export default new class ThreadServices {
         }
     }
 
-    async getOne(id: number): Promise<object | string> {
+    async getOne(id: number, loginSession: any): Promise<object | string> {
         try {
             const response = await this.ThreadRepository.findOne({
                 where: { id },
@@ -173,16 +159,44 @@ export default new class ThreadServices {
                 }
             })
 
-            if (response === null) {
-                return {
-                    mesage: "Data doesn't exist"
+            const userId = loginSession.obj.id
+            const like = await this.LikeRepository.find({
+                where: {
+                    user_id: {
+                        id: userId
+                    }
+                },
+                relations: ["user_id", "thread_id", "created_by", "updated_by"],
+                select: {
+                    user_id: {
+                        id: true
+                    },
+                    thread_id: {
+                        id: true
+                    },
+                    created_by: {
+                        id: true
+                    },
+                    updated_by: {
+                        id: true
+                    }
                 }
+            })
+
+            const result = {
+                id: response.id,
+                content: response.content,
+                image: response.image,
+                number_of_replies: response.number_of_replies.length,
+                number_of_likes: response.number_of_likes.length,
+                created_at: response.created_at,
+                created_by: response.created_by,
+                updated_at: response.updated_at,
+                updated_by: response.updated_by,
+                is_liked: like.some((likeData) => likeData.thread_id.id === response.id)
             }
 
-            return {
-                message: "success get a thread",
-                data: response
-            }
+            return result
         } catch (error) {
             throw new Error(error.message)
         }

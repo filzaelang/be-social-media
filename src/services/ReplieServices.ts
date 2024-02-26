@@ -5,28 +5,54 @@ import { Replie } from "../entity/Replie";
 export default new class RepliesServices {
     private readonly RepliesRepository: Repository<Replie> = AppDataSource.getRepository(Replie);
 
-    async create(data: Replie): Promise<object | string> {
+    // async create(data: Replie): Promise<object | string> {
+    //     try {
+    //         const response = this.RepliesRepository.save({
+    //             ...data,
+    //             created_at: new Date(),
+    //             updated_at: new Date()
+    //         });
+
+    //         return {
+    //             message: "sucess creating a reply",
+    //             data: response
+    //         }
+
+    //     } catch (error) {
+    //         throw new Error(error.message);
+    //     }
+    // }
+    async create(data: Replie): Promise<any> {
         try {
             const response = this.RepliesRepository.save({
                 ...data,
                 created_at: new Date(),
-                updated_at: new Date()
-            });
+                updated_at: new Date(),
+            })
 
             return {
-                message: "sucess creating a reply",
+                message: "success creating a new thread",
                 data: response
-            }
-
+            };
         } catch (error) {
             throw new Error(error.message);
         }
     }
 
-    async getAll(): Promise<object | string> {
+    async find(reqQuery: any): Promise<any> {
         try {
-            const response = await this.RepliesRepository.find({
+            const threadId = parseInt(reqQuery.thread_id ?? 0);
+
+            const replies = await this.RepliesRepository.find({
                 relations: ["user_id", "thread_id", "created_by", "updated_by"],
+                where: {
+                    thread_id: {
+                        id: threadId
+                    }
+                },
+                order: {
+                    id: "DESC",
+                },
                 select: {
                     user_id: {
                         id: true,
@@ -49,12 +75,9 @@ export default new class RepliesServices {
                 }
             });
 
-            return {
-                message: "success get all replies",
-                data: response
-            }
+            return replies;
         } catch (error) {
-            throw new Error(error.message)
+            throw new Error(error.message);
         }
     }
 

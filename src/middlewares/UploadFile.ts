@@ -1,28 +1,36 @@
 import * as multer from "multer"
-import * as express from "express"
+import { NextFunction, Request, Response } from "express"
 
 export default new class UploadImage {
 
-    // save to local storage
-    // preparation for create a new buffer file types
+
     upload(fieldName: string) {
         const storage = multer.diskStorage({
-            destination: (req, res, cb) => {
+            destination: function (req, file, cb) {
                 cb(null, "src/uploads")
             },
-            filename: (req, file, cb) => {
+            filename: function (req, file, cb) {
                 cb(null, `${file.fieldname}-${Date.now()}.png`)
-            }
+            },
         })
 
-        const uploadFile = multer({ storage })
+        const uploadFile = multer({ storage: storage })
 
-        return (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        return (req: Request, res: Response, next: NextFunction) => {
             // single, array, dll
-            uploadFile.single(fieldName)(req, res, (err: any) => {
-                if (err) return res.status(400).json({ message: "Error while processing upload image" })
+            uploadFile.single(fieldName)(req, res, function (error: any) {
+                if (error instanceof multer.MulterError) {
+                    return res.status(400).json({ error: error.message });
+                } else if (error) {
+                    return res.status(500).json({ error: "Internal server error" });
+                }
 
-                res.locals.filename = req.file.filename
+                if (req.file && req.file.filename) {
+                    res.locals.filename = req.file.filename;
+                } else {
+                    res.locals.filename = null;
+                }
+
                 next()
             })
         }

@@ -64,13 +64,14 @@ export default new class AuthServices {
                 throw new Error("Password & email/username doesn't match !")
             }
 
-            const obj = this.AuthRepository.create({
+            const obj = {
                 id: idCheck.id,
                 username: idCheck.username,
                 full_name: idCheck.full_name,
                 email: idCheck.email,
-                photo_profile: idCheck.photo_profile
-            });
+                photo_profile: idCheck.photo_profile,
+                description: idCheck.description
+            };
 
             const token = jwt.sign({ obj }, process.env.JWT_SECRET, {
                 expiresIn: process.env.JWT_EXPIRES_IN
