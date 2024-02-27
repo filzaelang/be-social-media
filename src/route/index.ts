@@ -21,6 +21,7 @@ router.post("/user", AuthMiddleware.Auth, UserController.find)
 // Thread
 router.post("/thread", AuthMiddleware.Auth, UploadFile.upload("image"), ThreadController.create)
 router.get("/thread", AuthMiddleware.Auth, ThreadController.getAll)
+router.get("/thread/user/:id", AuthMiddleware.Auth, ThreadController.findUserThread)
 router.get("/thread/:id", AuthMiddleware.Auth, ThreadController.getOne)
 router.patch("/thread/:id", AuthMiddleware.Auth, UploadFile.upload("image"), ThreadController.update)
 router.delete("/thread/:id", AuthMiddleware.Auth, ThreadController.delete)

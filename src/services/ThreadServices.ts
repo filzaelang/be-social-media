@@ -99,11 +99,10 @@ export default new class ThreadServices {
                 }
             });
 
-            const userId = loginSession.obj.id
             const like = await this.LikeRepository.find({
                 where: {
                     user_id: {
-                        id: userId
+                        id: loginSession.obj.id
                     }
                 },
                 relations: ["user_id", "thread_id", "created_by", "updated_by"],
@@ -197,6 +196,86 @@ export default new class ThreadServices {
             }
 
             return result
+        } catch (error) {
+            throw new Error(error.message)
+        }
+    }
+
+    async findUserThreads(loginSession: any): Promise<object | string> {
+        try {
+            console.log(loginSession)
+            const thread = await this.ThreadRepository.find({
+                where: {
+                    created_by: {
+                        id: loginSession.obj.id
+                    }
+                },
+                relations: ["number_of_replies", "number_of_likes", "created_by", "updated_by"],
+                order: {
+                    created_at: "DESC"
+                },
+                select: {
+                    number_of_replies: true,
+                    number_of_likes: {
+                        id: true,
+                        user_id: {
+                            id: true
+                        }
+                    },
+                    created_by: {
+                        id: true,
+                        username: true,
+                        full_name: true,
+                        photo_profile: true,
+                    },
+                    updated_by: {
+                        id: true,
+                        username: true,
+                        full_name: true,
+                        photo_profile: true,
+                    }
+                }
+            });
+
+            console.log("333333")
+            console.log(thread)
+            console.log("333333")
+
+            const like = await this.LikeRepository.find({
+                where: {
+                    user_id: {
+                        id: loginSession.obj.id
+                    }
+                },
+                relations: ["user_id", "thread_id", "created_by", "updated_by"],
+                select: {
+                    user_id: {
+                        id: true
+                    },
+                    thread_id: {
+                        id: true
+                    },
+                    created_by: {
+                        id: true
+                    },
+                    updated_by: {
+                        id: true
+                    }
+                }
+            })
+
+            return thread.map((data) => ({
+                id: data.id,
+                content: data.content,
+                image: data.image,
+                number_of_replies: data.number_of_replies.length,
+                number_of_likes: data.number_of_likes.length,
+                created_at: data.created_at,
+                created_by: data.created_by,
+                updated_at: data.updated_at,
+                updated_by: data.updated_by,
+                is_liked: like.some((likeData) => likeData.thread_id.id === data.id)
+            }))
         } catch (error) {
             throw new Error(error.message)
         }
