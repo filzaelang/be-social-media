@@ -54,6 +54,7 @@ export default new class AuthServices {
                     { username: data.username },
                     { email: data.username },
                 ],
+                relations: ["follower", "following"]
             } as FindManyOptions<User>);
             if (!idCheck) {
                 throw new Error("Username or email does not exist");
@@ -70,7 +71,9 @@ export default new class AuthServices {
                 full_name: idCheck.full_name,
                 email: idCheck.email,
                 photo_profile: idCheck.photo_profile,
-                description: idCheck.description
+                description: idCheck.description,
+                followers_count: idCheck.follower.length,
+                following_count: idCheck.following.length
             };
 
             const token = jwt.sign({ obj }, process.env.JWT_SECRET, {

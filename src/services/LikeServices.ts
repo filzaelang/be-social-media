@@ -54,7 +54,7 @@ export default new class LikeServices {
             })
 
             if (!checkLike) {
-                throw new Error("YOu didn't like this thread")
+                throw new Error("You didn't like this thread")
             }
 
             const response = this.LikeRepository.delete({

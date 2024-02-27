@@ -38,9 +38,8 @@ router.delete("/reply/:id", AuthMiddleware.Auth, ReplieController.delete)
 
 //Follow
 router.post("/follow", AuthMiddleware.Auth, FollowingController.create)
-router.get("/follow/following", AuthMiddleware.Auth, FollowingController.findMyFollowing)
-router.get("/follow/follower", AuthMiddleware.Auth, FollowingController.findMyFollower)
-router.delete("/follow/:id", AuthMiddleware.Auth, FollowingController.delete)
+router.get("/follows", AuthMiddleware.Auth, FollowingController.find)
+router.delete("/follow/:following_id", AuthMiddleware.Auth, FollowingController.delete)
 
 
 export default router;
