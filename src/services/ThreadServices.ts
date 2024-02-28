@@ -28,9 +28,7 @@ export default new class ThreadServices {
 
     async update(id: number, data: Thread): Promise<object | string> {
         try {
-            const thread = this.ThreadRepository.findOne({
 
-            })
             if (data.image) {
                 cloudinary.upload();
                 const cloudinaryRes = await cloudinary.destination(data.image);
@@ -236,10 +234,6 @@ export default new class ThreadServices {
                     }
                 }
             });
-
-            console.log("333333")
-            console.log(thread)
-            console.log("333333")
 
             const like = await this.LikeRepository.find({
                 where: {

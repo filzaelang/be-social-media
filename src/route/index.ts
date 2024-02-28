@@ -17,6 +17,7 @@ router.get("/auth/check", AuthMiddleware.Auth, AuthController.check)
 
 // User
 router.post("/user", AuthMiddleware.Auth, UserController.find)
+router.patch("/user/detail", AuthMiddleware.Auth, UploadFile.upload("photo_profile"), UserController.update)
 
 // Thread
 router.post("/thread", AuthMiddleware.Auth, UploadFile.upload("image"), ThreadController.create)
