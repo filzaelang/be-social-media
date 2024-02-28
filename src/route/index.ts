@@ -18,11 +18,13 @@ router.get("/auth/check", AuthMiddleware.Auth, AuthController.check)
 // User
 router.post("/user", AuthMiddleware.Auth, UserController.find)
 router.patch("/user/detail", AuthMiddleware.Auth, UploadFile.upload("photo_profile"), UserController.update)
+router.get("/user/detail/:id", AuthMiddleware.Auth, UserController.findOne)
 
 // Thread
 router.post("/thread", AuthMiddleware.Auth, UploadFile.upload("image"), ThreadController.create)
 router.get("/thread", AuthMiddleware.Auth, ThreadController.getAll)
-router.get("/thread/user/:id", AuthMiddleware.Auth, ThreadController.findUserThread)
+router.get("/thread/user", AuthMiddleware.Auth, ThreadController.findUserThread)
+router.get("/thread/user/:id", AuthMiddleware.Auth, ThreadController.findOtherUserThread)
 router.get("/thread/:id", AuthMiddleware.Auth, ThreadController.getOne)
 router.patch("/thread/:id", AuthMiddleware.Auth, UploadFile.upload("image"), ThreadController.update)
 router.delete("/thread/:id", AuthMiddleware.Auth, ThreadController.delete)

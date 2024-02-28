@@ -125,4 +125,15 @@ export default new class ThreadController {
             return res.status(500).json({ message: "Internal server error", error: error.message });
         }
     }
+
+    async findOtherUserThread(req: Request, res: Response) {
+        try {
+            const id = parseInt(req.params.id, 10)
+            const response = await ThreadServices.findOtherUserThreads(id);
+            return res.status(200).json(response);
+        } catch (error) {
+            console.error("Error getting all thread", error);
+            return res.status(500).json({ message: "Internal server error", error: error.message });
+        }
+    }
 }

@@ -49,6 +49,30 @@ export default new class UserSevices {
         }
     }
 
+    async findOne(id: number, loginSession: any): Promise<object | string> {
+        try {
+            const user = await this.UserRepository.findOne({
+                where: { id },
+                relations: ["follower", "following"],
+            })
+
+            return {
+                id: user.id,
+                username: user.username,
+                full_name: user.full_name,
+                email: user.email,
+                photo_profile: user.photo_profile,
+                description: user.description,
+                follower: user.follower || [],
+                following: user.following || [],
+                followers_count: (user.follower || []).length,
+                following_count: (user.following || []).length,
+            }
+        } catch (error) {
+            throw new Error(error.message);
+        }
+    }
+
     async update(reqBody: any, loginSession: any, file: any, fileName: string): Promise<object | string> {
         try {
 
